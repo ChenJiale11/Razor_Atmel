@@ -228,20 +228,40 @@ static void UserApp1SM_Idle(void)
       
       if(u8LastState != G_au8AntApiCurrentMessageBytes[ANT_TICK_MSG_EVENT_CODE_INDEX])
       {
-        u8LastState = G_au8AntApiCurrentMessageBytes[ANT_TICK_MSG_EVENT_CODE_INDEX];
-        
-        switch (u8LastState)
-        {
-            case    RESPONSE_NO_ERROR: 
-                u32AntSuccCount++;
-                break;
-              
-            case    EVENT_RX_FAIL:           
+            u8LastState = G_au8AntApiCurrentMessageBytes[ANT_TICK_MSG_EVENT_CODE_INDEX];
+            
+            if(u8LastState==EVENT_TRANSFER_TX_FAILED)
+            {
                 u32AntFailCount++;
-                break;
-        }
+            }
+            
+            else
+            {
+                u32AntSuccCount++;
+            }
+                
+            au8TestMessage[7]=u32AntSuccCount;
+        
+            if(au8TestMessage[7] == 0)
+            {
+                au8TestMessage[6]++;
+                if(au8TestMessage[6] == 0)
+                {
+                  au8TestMessage[5]++;
+                }
+            }
+            
+            au8TestMessage[3]=u32AntFailCount;
+        
+            if(au8TestMessage[3] == 0)
+            {
+                au8TestMessage[2]++;
+                if(au8TestMessage[2] == 0)
+                {
+                  au8TestMessage[1]++;
+                }
+            }
       }
-      
       
       AntQueueAcknowledgedMessage(ANT_CHANNEL_USERAPP, au8TestMessage);
     }
