@@ -68,7 +68,9 @@ static u32 UserApp1_u32Timeout;                        /* Timeout counter used a
 static AntAssignChannelInfoType UserApp1_sChannelInfo; /* ANT setup parameters */
 
 static u8 UserApp1_au8MessageFail[] = "\n\r***ANT channel setup failed***\n\n\r";
-
+static u32 u32AntSuccCount=0;
+static u32 u32AntFailCount=0;
+static u8 u8LastState = 0xff;
 /**********************************************************************************************************************
 Function Definitions
 **********************************************************************************************************************/
@@ -198,36 +200,9 @@ static void UserApp1SM_AntChannelAssign()
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-  static u8 au8TestMessage[] = {0, 0, 0, 0, 0xA5, 0, 0, 0};
+  static u8 au8TestMessage[] = {0x5B, 0, 0, 0, 0xFF, 0, 0, 0};
   u8 au8DataContent[] = "xxxxxxxxxxxxxxxx";
-  
-  /* Check all the buttons and update au8TestMessage according to the button state */ 
-  au8TestMessage[0] = 0x00;
-  if( IsButtonPressed(BUTTON0) )
-  {
-    au8TestMessage[0] = 0xff;
-  }
-  
-  au8TestMessage[1] = 0x00;
-  if( IsButtonPressed(BUTTON1) )
-  {
-    au8TestMessage[1] = 0xff;
-  }
-
-#ifdef EIE1
-  au8TestMessage[2] = 0x00;
-  if( IsButtonPressed(BUTTON2) )
-  {
-    au8TestMessage[2] = 0xff;
-  }
-
-  au8TestMessage[3] = 0x00;
-  if( IsButtonPressed(BUTTON3) )
-  {
-    au8TestMessage[3] = 0xff;
-  }
-#endif /* EIE1 */
-  
+ 
   if( AntReadAppMessageBuffer() )
   {
      /* New message from ANT task: check what it is */
@@ -250,17 +225,25 @@ static void UserApp1SM_Idle(void)
     }
     else if(G_eAntApiCurrentMessageClass == ANT_TICK)
     {
-     /* Update and queue the new message data */
-      au8TestMessage[7]++;
-      if(au8TestMessage[7] == 0)
+      
+      if(u8LastState != G_au8AntApiCurrentMessageBytes[ANT_TICK_MSG_EVENT_CODE_INDEX])
       {
-        au8TestMessage[6]++;
-        if(au8TestMessage[6] == 0)
+        u8LastState = G_au8AntApiCurrentMessageBytes[ANT_TICK_MSG_EVENT_CODE_INDEX];
+        
+        switch (u8LastState)
         {
-          au8TestMessage[5]++;
+            case    RESPONSE_NO_ERROR: 
+                u32AntSuccCount++;
+                break;
+              
+            case    EVENT_RX_FAIL:           
+                u32AntFailCount++;
+                break;
         }
       }
-      AntQueueBroadcastMessage(ANT_CHANNEL_USERAPP, au8TestMessage);
+      
+      
+      AntQueueAcknowledgedMessage(ANT_CHANNEL_USERAPP, au8TestMessage);
     }
   } /* end AntReadData() */
   
