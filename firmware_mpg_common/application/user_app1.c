@@ -278,6 +278,7 @@ static void UserApp1SM_Idle(void)
                         au8AntLcdDisplay[7]=0;
                         au8AntLcdDisplay[8]=0;
                         au8AntLcdDisplay[9]=0;
+                        u32AntSuccCount=0;
                     }
                 } 
             }
@@ -301,6 +302,7 @@ static void UserApp1SM_Idle(void)
                         au8AntLcdDisplay[1]=0;
                         au8AntLcdDisplay[2]=0;
                         au8AntLcdDisplay[3]=0;
+                        u32AntFailCount=0;
                     }
                 } 
             }
