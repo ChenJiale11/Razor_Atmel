@@ -73,6 +73,7 @@ static u8 au8Message3[]="PRESS B0 TO START   ";
 static u8 au8Msssage1[]="PRESS B0 TO BE M";
 static u8 au8Msssage2[]="PRESS B1 TO BE S";
 static s8 s8RssiChannel;
+static u8 UserApp1_au8MasterName[9]   = "0\0\0\0\0\0\0\0";
 /**********************************************************************************************************************
 Function Definitions
 **********************************************************************************************************************/
@@ -363,7 +364,7 @@ static void UserApp1SM_RadioOpening(void)
 
             else if(G_eAntApiCurrentMessageClass == ANT_TICK)
             {
-                AntQueueBroadcastMessage(ANT_CHANNEL_0,&au8LCD_Line_2);
+                AntQueueBroadcastMessage(ANT_CHANNEL_0,&UserApp1_au8MasterName[0]);
             }
             
             LCDMessage(LINE2_START_ADDR, au8LCD_Line_2);
