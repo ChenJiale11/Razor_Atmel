@@ -63,7 +63,8 @@ Variable names shall start with "UserApp1_" and be declared as static.
 static fnCode_type UserApp1_StateMachine;            /* The state machine function pointer */
 static u32 UserApp1_u32Timeout;                      /* Timeout counter used across states */
 
-static AntAssignChannelInfoType sAntSetupData;
+static AntAssignChannelInfoType UserApp1_sMasterChannel;
+static AntAssignChannelInfoType UserApp1_sSlaveChannel;
 
 /**********************************************************************************************************************
 Function Definitions
@@ -92,26 +93,50 @@ Promises:
 void UserApp1Initialize(void)
 {
     /* For channel 0 , as master ,Configure ANT for this application */
-    sAntSetupData.AntChannel          = ANT_CHANNEL0_USERAPP;
-    sAntSetupData.AntChannelType      = ANT_CHANNEL_TYPE_USERAPP;
-    sAntSetupData.AntChannelPeriodLo  = ANT_CHANNEL_PERIOD_LO_USERAPP;
-    sAntSetupData.AntChannelPeriodHi  = ANT_CHANNEL_PERIOD_HI_USERAPP;
+    UserApp1_sMasterChannel.AntChannel          = ANT_CHANNEL0_USERAPP;
+    UserApp1_sMasterChannel.AntChannelType      = ANT_CHANNEL0_TYPE_USERAPP;
+    UserApp1_sMasterChannel.AntChannelPeriodLo  = ANT_CHANNEL_PERIOD_LO_USERAPP;
+    UserApp1_sMasterChannel.AntChannelPeriodHi  = ANT_CHANNEL_PERIOD_HI_USERAPP;
 
-    sAntSetupData.AntDeviceIdLo       = ANT_DEVICEID_LO_USERAPP;
-    sAntSetupData.AntDeviceIdHi       = ANT_DEVICEID_HI_USERAPP;
-    sAntSetupData.AntDeviceType       = ANT_DEVICE_TYPE_USERAPP;
-    sAntSetupData.AntTransmissionType = ANT_TRANSMISSION_TYPE_USERAPP;
-    sAntSetupData.AntFrequency        = ANT_FREQUENCY_USERAPP;
-    sAntSetupData.AntTxPower          = ANT_TX_POWER_USERAPP;
+    UserApp1_sMasterChannel.AntDeviceIdLo       = ANT_DEVICEID_LO_USERAPP;
+    UserApp1_sMasterChannel.AntDeviceIdHi       = ANT_DEVICEID_HI_USERAPP;
+    UserApp1_sMasterChannel.AntDeviceType       = ANT_DEVICE_TYPE_USERAPP;
+    UserApp1_sMasterChannel.AntTransmissionType = ANT_TRANSMISSION_TYPE_USERAPP;
+    UserApp1_sMasterChannel.AntFrequency        = ANT_FREQUENCY_USERAPP;
+    UserApp1_sMasterChannel.AntTxPower          = ANT_TX_POWER_USERAPP;
 
-    sAntSetupData.AntNetwork = ANT_NETWORK_DEFAULT;
+    UserApp1_sMasterChannel.AntNetwork = ANT_NETWORK_DEFAULT;
     for(u8 i = 0; i < ANT_NETWORK_NUMBER_BYTES; i++)
     {
-        sAntSetupData.AntNetworkKey[i] = ANT_DEFAULT_NETWORK_KEY;
+        UserApp1_sMasterChannel.AntNetworkKey[i] = ANT_DEFAULT_NETWORK_KEY;
     }
     
-    
+    /* For channel 1 , as master ,Configure ANT for this application */
+    UserApp1_sSlaveChannel.AntChannel          = ANT_CHANNEL1_USERAPP;
+    UserApp1_sSlaveChannel.AntChannelType      = ANT_CHANNEL1_TYPE_USERAPP;
+    UserApp1_sSlaveChannel.AntChannelPeriodLo  = ANT_CHANNEL_PERIOD_LO_USERAPP;
+    UserApp1_sSlaveChannel.AntChannelPeriodHi  = ANT_CHANNEL_PERIOD_HI_USERAPP;
 
+    UserApp1_sSlaveChannel.AntDeviceIdLo       = ANT_DEVICEID_LO_USERAPP;
+    UserApp1_sSlaveChannel.AntDeviceIdHi       = ANT_DEVICEID_HI_USERAPP;
+    UserApp1_sSlaveChannel.AntDeviceType       = ANT_DEVICE_TYPE_USERAPP;
+    UserApp1_sSlaveChannel.AntTransmissionType = ANT_TRANSMISSION_TYPE_USERAPP;
+    UserApp1_sSlaveChannel.AntFrequency        = ANT_FREQUENCY_USERAPP;
+    UserApp1_sSlaveChannel.AntTxPower          = ANT_TX_POWER_USERAPP;
+
+    UserApp1_sSlaveChannel.AntNetwork = ANT_NETWORK_DEFAULT;
+    for(u8 i = 0; i < ANT_NETWORK_NUMBER_BYTES; i++)
+    {
+        UserApp1_sSlaveChannel.AntNetworkKey[i] = ANT_DEFAULT_NETWORK_KEY;
+    }
+
+    /*Master and slaver set OK*/
+    
+    /* If good initialization, set state to Idle */
+    AntAssignChannel(&UserApp1_sMasterChannel);
+    AntAssignChannel(&UserApp1_sSlaveChannel);
+    UserApp1_StateMachine = UserApp1SM_WaitChannelAssign;
+    
 } /* end UserApp1Initialize() */
 
   
@@ -152,7 +177,24 @@ static void UserApp1SM_Idle(void)
 
 } /* end UserApp1SM_Idle() */
     
-
+static void UserApp1SM_WaitChannelAssign(void)
+{
+  /* Check if the channel assignment is complete */
+  if(AntRadioStatusChannel(ANT_CHANNEL_USERAPP) == ANT_CONFIGURED)
+  {
+    UserApp1_StateMachine = UserApp1SM_WaitChannelOpen;
+    AntOpenChannelNumber(ANT_CHANNEL_USERAPP);
+  }
+  
+  /* Monitor for timeout */
+  if( IsTimeUp(&UserApp1_u32Timeout, 5000) )
+  {
+    DebugPrintf("\n\r***Channel assignment timeout***\n\n\r");
+    LedOn(RED);
+    UserApp1_StateMachine = UserApp1SM_Error;
+  }
+      
+} /* end UserApp1SM_WaitChannelAssign() */
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Handle an error */
 static void UserApp1SM_Error(void)          
