@@ -358,15 +358,15 @@ static void UserApp1SM_RadioOpening(void)
         {
             if(G_eAntApiCurrentMessageClass == ANT_DATA)
             {
-                s8RssiChannel=G_sAntApiCurrentMessageExtData.s8RSSI;
-                AntGetdBmAscii(s8RssiChannel,&au8LCD_Line_2[0]);
                 
             }
 
             else if(G_eAntApiCurrentMessageClass == ANT_TICK)
             {
-                LCDMessage(LINE2_START_ADDR, au8LCD_Line_2);
+                AntQueueBroadcastMessage(ANT_CHANNEL_0,&au8LCD_Line_2);
             }
+            
+            LCDMessage(LINE2_START_ADDR, au8LCD_Line_2);
         }
     }
     
@@ -379,12 +379,13 @@ static void UserApp1SM_RadioOpening(void)
             {
                 s8RssiChannel = G_sAntApiCurrentMessageExtData.s8RSSI;
                 AntGetdBmAscii(s8RssiChannel,&au8LCD_Line_2[0]);
-                
+                LCDClearChars(LINE2_START_ADDR, 2);
+                LCDMessage(LINE2_START_ADDR, au8LCD_Line_2);
             }
 
             else if(G_eAntApiCurrentMessageClass == ANT_TICK)
             {
-                LCDMessage(LINE2_START_ADDR, au8LCD_Line_2);
+                
             }
         }
     }
