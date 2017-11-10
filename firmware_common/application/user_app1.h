@@ -70,7 +70,9 @@ static void UserApp1SM_Idle(void);
 
 static void UserApp1SM_Error(void);         
 
-
+static void UserApp1SM_WaitChannelAssign(void);
+static void UserApp1SM_WaitChannelOpen(void);
+static void UserApp1SM_RadioOpening(void);
 #endif /* __USER_APP1_H */
 
 
