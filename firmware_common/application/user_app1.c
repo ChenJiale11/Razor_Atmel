@@ -72,7 +72,7 @@ static u8 au8LCD_Line_2[20]="PRESS B0 TO START   ";
 static u8 au8Message3[]="PRESS B0 TO START   ";
 static u8 au8Msssage1[]="PRESS B0 TO BE M";
 static u8 au8Msssage2[]="PRESS B1 TO BE S";
-static s8 s8RssiChannel;
+static s8 s8RssiChannel=-99;
 static u8 UserApp1_au8MasterName[9]   = "0\0\0\0\0\0\0\0";
 /**********************************************************************************************************************
 Function Definitions
@@ -352,6 +352,11 @@ static void UserApp1SM_CountBackwards(void)
 
 static void UserApp1SM_RadioOpening(void)
 {
+    LedNumberType aeLedDisplayLevels[] = {RED, ORANGE, YELLOW, GREEN, CYAN, BLUE, PURPLE, WHITE};
+    s8 as8dBmLevels[] = {DBM_LEVEL1, DBM_LEVEL2, DBM_LEVEL3, DBM_LEVEL4, 
+                       DBM_LEVEL5, DBM_LEVEL6, DBM_LEVEL7, DBM_LEVEL8};
+    static s8 s8StrongestRssi = -99;
+
     /*Master*/
     if( AntRadioStatusChannel(ANT_CHANNEL0_USERAPP) == ANT_OPEN ) 
     {
@@ -387,6 +392,25 @@ static void UserApp1SM_RadioOpening(void)
             else if(G_eAntApiCurrentMessageClass == ANT_TICK)
             {
                 
+            }
+            
+            s8StrongestRssi = s8RssiChannel;
+            if(s8RssiChannel > s8RssiChannel)
+            {
+                s8StrongestRssi = s8RssiChannel;
+            }
+
+            /* Loop through all of the levels to check which LEDs to turn on */
+            for(u8 i = 0; i < NUM_DBM_LEVELS; i++)
+            {
+                if(s8StrongestRssi > as8dBmLevels[i])
+                {
+                    LedOn(aeLedDisplayLevels[i]);
+                }
+                else
+                {
+                    LedOff(aeLedDisplayLevels[i]);
+                }
             }
         }
     }

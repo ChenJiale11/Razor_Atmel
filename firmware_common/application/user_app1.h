@@ -43,6 +43,17 @@ Constants / Definitions
 #define ANT_TX_POWER_USERAPP            RADIO_TX_POWER_4DBM   /* RADIO_TX_POWER_0DBM, RADIO_TX_POWER_MINUS5DBM, RADIO_TX_POWER_MINUS10DBM, RADIO_TX_POWER_MINUS20DBM */
 
 #define LCD_DISPLAY_LENGTH              (u8)20
+
+#define DBM_LEVEL1          (s8)-99
+#define DBM_LEVEL2          (s8)-84
+#define DBM_LEVEL3          (s8)-76
+#define DBM_LEVEL4          (s8)-69
+#define DBM_LEVEL5          (s8)-63
+#define DBM_LEVEL6          (s8)-58
+#define DBM_LEVEL7          (s8)-54
+#define DBM_LEVEL8          (s8)-51
+#define DBM_MAX_LEVEL       DBM_LEVEL8
+#define NUM_DBM_LEVELS      (u8)8
 /**********************************************************************************************************************
 Function Declarations
 **********************************************************************************************************************/
