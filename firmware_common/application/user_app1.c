@@ -65,8 +65,13 @@ static u32 UserApp1_u32Timeout;                      /* Timeout counter used acr
 
 static AntAssignChannelInfoType UserApp1_sMasterChannel;
 static AntAssignChannelInfoType UserApp1_sSlaveChannel;
+static u8 au8Master[20]="Master              ";
+static u8 au8Slave[20]="Slave               ";
 static u8 au8LCD_Line_1[20]="Master              ";
-static u8 au8LCD_Line_2[20]="                    ";
+static u8 au8LCD_Line_2[20]="PRESS B0 TO START   ";
+static u8 au8Message3[]="PRESS B0 TO START   ";
+static u8 au8Msssage1[]="PRESS B0 TO BE M";
+static u8 au8Msssage2[]="PRESS B1 TO BE S";
 static s8 s8RssiChannel;
 /**********************************************************************************************************************
 Function Definitions
@@ -151,9 +156,10 @@ void UserApp1Initialize(void)
     
     /* If good initialization, set state to Idle */
     AntAssignChannel(&UserApp1_sMasterChannel);
-    AntAssignChannel(&UserApp1_sSlaveChannel);
-    UserApp1_StateMachine = UserApp1SM_WaitChannelAssign;
+    
+    UserApp1_StateMachine = UserApp1SM_WaitMasterAssign;
     LedOn(GREEN);
+    UserApp1_u32Timeout = G_u32SystemTime1ms;
 } /* end UserApp1Initialize() */
 
   
@@ -189,29 +195,117 @@ State Machine Function Definitions
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Wait for ??? */
+
+
+
 static void UserApp1SM_Idle(void)
 {
-    LedOff(GREEN);
     if(WasButtonPressed(BUTTON0))
     {   
         ButtonAcknowledge(BUTTON0);
+        
+        for(u8 i = 0 ; i<LCD_DISPLAY_LENGTH ; i++)
+        {
+            au8LCD_Line_1[i]=au8Master[i];
+            au8LCD_Line_2[i]=au8Message3[i];
+        }
+        
         AntOpenChannelNumber(ANT_CHANNEL0_USERAPP);
-        UserApp1_StateMachine = UserApp1SM_WaitChannelOpen;
+        LCDMessage(LINE1_START_ADDR, au8LCD_Line_1);
+        LCDMessage(LINE2_START_ADDR, au8LCD_Line_2);
+        LedOn(LCD_GREEN);
+        LedOn(LCD_RED);
+        UserApp1_StateMachine = UserApp1SM_ChoiceWaiting;
     }
     
     else if(WasButtonPressed(BUTTON1))
     {   
         ButtonAcknowledge(BUTTON1);
+        for(u8 i = 0 ; i<LCD_DISPLAY_LENGTH ; i++)
+        {
+            au8LCD_Line_1[i]=au8Slave[i];
+            au8LCD_Line_2[i]=au8Message3[i];
+        }
+        
         AntOpenChannelNumber(ANT_CHANNEL1_USERAPP);
-        UserApp1_StateMachine = UserApp1SM_WaitChannelOpen;
+        LCDMessage(LINE1_START_ADDR, au8LCD_Line_1);
+        LCDMessage(LINE2_START_ADDR, au8LCD_Line_2);
+        LedOn(LCD_BLUE);
+        
+        UserApp1_StateMachine = UserApp1SM_ChoiceWaiting;
     }
     
     UserApp1_u32Timeout = G_u32SystemTime1ms;
 } /* end UserApp1SM_Idle() */
 
+static void UserApp1SM_ChoiceWaiting(void)
+{
+    if(WasButtonPressed(BUTTON0))
+    {   
+        ButtonAcknowledge(BUTTON0);
+        UserApp1_StateMachine = UserApp1SM_CountBackwards;
+        LCDMessage(LINE2_START_ADDR, "                    ");
+    }
+    
+}/* end UserApp1SM_ChoiceWaiting() */
+
+static void UserApp1SM_CountBackwards(void)
+{
+    static s8 s8Count=10;
+    static u16 u16Count=0;
+    u16Count++;
+    
+    if(u16Count==1000)
+    {
+        u16Count=0;
+        
+        for(u8 i = 0 ; i<LCD_DISPLAY_LENGTH; i++)
+        {
+            au8LCD_Line_2[i]='\0';
+        }
+        
+        au8LCD_Line_2[0]=s8Count+48;
+        
+        if(s8Count==10)
+        {
+            for(u8 i = 0 ; i<LCD_DISPLAY_LENGTH; i++)
+            {
+                au8LCD_Line_2[i]='\0';
+            }
+            
+            au8LCD_Line_2[0]='1';
+            au8LCD_Line_2[1]='0';
+        }
+        
+        if(s8Count==9)
+        {
+            LCDMessage(LINE2_START_ADDR, "                    ");
+        }
+        LCDMessage(LINE2_START_ADDR, au8LCD_Line_2);
+        s8Count--;
+    }
+    
+    if(s8Count==-1)
+    {
+        UserApp1_StateMachine = UserApp1SM_WaitChannelOpen;
+        s8Count=10;
+        u16Count=0;
+        UserApp1_u32Timeout = G_u32SystemTime1ms;
+        
+        for(u8 i = 0 ; i<LCD_DISPLAY_LENGTH; i++)
+        {
+            au8LCD_Line_2[i]='\0';
+        }
+      
+        LCDMessage(LINE2_START_ADDR, "                     ");
+    }
+    
+    UserApp1_u32Timeout = G_u32SystemTime1ms;
+} /* end UserApp1SM_CountBackwards() */
+
+
 static void UserApp1SM_RadioOpening(void)
 {
-  
     /*Master*/
     if( AntRadioStatusChannel(ANT_CHANNEL0_USERAPP) == ANT_OPEN ) 
     {
@@ -220,15 +314,13 @@ static void UserApp1SM_RadioOpening(void)
             if(G_eAntApiCurrentMessageClass == ANT_DATA)
             {
                 s8RssiChannel=G_sAntApiCurrentMessageExtData.s8RSSI;
-                LedOn(BLUE);
+                
             }
 
             else if(G_eAntApiCurrentMessageClass == ANT_TICK)
             {
                 
             }
-            
-            
         }
     }
     
@@ -240,7 +332,8 @@ static void UserApp1SM_RadioOpening(void)
             if(G_eAntApiCurrentMessageClass == ANT_DATA)
             {
                 s8RssiChannel = G_sAntApiCurrentMessageExtData.s8RSSI;
-                LedOn(BLUE);
+                
+                
             }
 
             else if(G_eAntApiCurrentMessageClass == ANT_TICK)
@@ -257,14 +350,12 @@ static void UserApp1SM_WaitChannelOpen(void)
     if( AntRadioStatusChannel(ANT_CHANNEL0_USERAPP) == ANT_OPEN ) 
     {
         UserApp1_StateMachine = UserApp1SM_RadioOpening;
-        LCDMessage(LINE1_START_ADDR, au8LCD_Line_1);
-        
     }
   
     if( AntRadioStatusChannel(ANT_CHANNEL1_USERAPP) == ANT_OPEN ) 
     {
         UserApp1_StateMachine = UserApp1SM_RadioOpening;
-        LCDMessage(LINE1_START_ADDR, au8LCD_Line_1);
+        
     }
     /* Check for timeout */
     if( IsTimeUp(&UserApp1_u32Timeout, 5000) )
@@ -280,31 +371,57 @@ static void UserApp1SM_WaitChannelOpen(void)
     
 } /* end UserApp1SM_WaitChannelOpen() */
 
-static void UserApp1SM_WaitChannelAssign(void)
+static void UserApp1SM_WaitMasterAssign(void)
 {
   /* Check if the channel assignment is complete */
-  if( (AntRadioStatusChannel(ANT_CHANNEL0_USERAPP) == ANT_CONFIGURED) && (AntRadioStatusChannel(ANT_CHANNEL1_USERAPP) == ANT_CONFIGURED) )
+  if(AntRadioStatusChannel(ANT_CHANNEL0_USERAPP) == ANT_CONFIGURED)
   {
-    UserApp1_StateMachine = UserApp1SM_Idle;
-    LCDMessage(LINE1_START_ADDR, "PRESS B0 TO BE M");
-    LCDMessage(LINE2_START_ADDR, "PRESS B1 TO BE S");
+    UserApp1_StateMachine = UserApp1SM_WaitSlaveAssign;
+    UserApp1_u32Timeout = G_u32SystemTime1ms;
+    AntAssignChannel(&UserApp1_sSlaveChannel);
   }
   
+  if( IsTimeUp(&UserApp1_u32Timeout, 5000) )
+  {
+    DebugPrintf("\n\r***Channel assignment timeout***\n\n\r");
+    LedOn(RED);
+    UserApp1_StateMachine = UserApp1SM_Error;
+  }
+} /* end UserApp1SM_WaitMasterAssign() */
+
+
+static void UserApp1SM_WaitSlaveAssign(void)
+{
+  /* Check if the channel assignment is complete */
+  if(AntRadioStatusChannel(ANT_CHANNEL1_USERAPP) == ANT_CONFIGURED)
+  {
+    UserApp1_StateMachine = UserApp1SM_Idle;
+    LedOff(GREEN);
+    
+    for(u8 i = 0 ; i<LCD_DISPLAY_LENGTH; i++)
+    {
+        au8LCD_Line_2[i]='\0';
+        au8LCD_Line_1[i]='\0';
+        au8LCD_Line_1[i]=au8Msssage1[i];
+        au8LCD_Line_2[i]=au8Msssage2[i];
+    }
+    
+    LCDMessage(LINE1_START_ADDR, au8LCD_Line_1);
+    LCDMessage(LINE2_START_ADDR, au8LCD_Line_2);
+  }
   
-} /* end UserApp1SM_WaitChannelAssign() */
+  if( IsTimeUp(&UserApp1_u32Timeout, 5000) )
+  {
+    DebugPrintf("\n\r***Channel assignment timeout***\n\n\r");
+    LedOn(RED);
+    UserApp1_StateMachine = UserApp1SM_Error;
+  }
+} /* end UserApp1SM_WaitSlaveAssign() */
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Handle an error */
 static void UserApp1SM_Error(void)          
 {  
-    if(WasButtonPressed(BUTTON0))
-    {   
-        ButtonAcknowledge(BUTTON0);
-        LedOff(RED);
-        LedOn(GREEN);
-        UserApp1_StateMachine = UserApp1SM_Idle;
-        LCDMessage(LINE1_START_ADDR, "PRESS B0 TO BE M");
-        LCDMessage(LINE2_START_ADDR, "PRESS B1 TO BE S");
-    }
+    
 } /* end UserApp1SM_Error() */
 
 

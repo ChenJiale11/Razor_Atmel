@@ -42,7 +42,7 @@ Constants / Definitions
 #define ANT_FREQUENCY_USERAPP           (u8)50                /* 2400MHz + this number 0 - 99 */
 #define ANT_TX_POWER_USERAPP            RADIO_TX_POWER_4DBM   /* RADIO_TX_POWER_0DBM, RADIO_TX_POWER_MINUS5DBM, RADIO_TX_POWER_MINUS10DBM, RADIO_TX_POWER_MINUS20DBM */
 
-
+#define LCD_DISPLAY_LENGTH              (u8)20
 /**********************************************************************************************************************
 Function Declarations
 **********************************************************************************************************************/
@@ -67,10 +67,11 @@ void UserApp1RunActiveState(void);
 State Machine Declarations
 ***********************************************************************************************************************/
 static void UserApp1SM_Idle(void);    
-
+static void UserApp1SM_ChoiceWaiting(void);
+static void UserApp1SM_CountBackwards(void);
 static void UserApp1SM_Error(void);         
-
-static void UserApp1SM_WaitChannelAssign(void);
+static void UserApp1SM_WaitSlaveAssign(void);
+static void UserApp1SM_WaitMasterAssign(void);
 static void UserApp1SM_WaitChannelOpen(void);
 static void UserApp1SM_RadioOpening(void);
 #endif /* __USER_APP1_H */
