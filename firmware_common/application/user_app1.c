@@ -412,11 +412,31 @@ static void UserApp1SM_RadioOpening(void)
                     LedOff(aeLedDisplayLevels[i]);
                 }
             }
+            
+        }
+        if(s8StrongestRssi > DBM_MAX_LEVEL)
+        {
+            UserApp1_StateMachine = UserApp1SM_Finish;
+            LCDClearChars(LINE2_START_ADDR, 8);
+            LCDMessage(LINE2_START_ADDR, "Find you");
+            LedOff(WHITE);
+            LedOff(PURPLE);
+            LedOff(BLUE);
+            LedOff(CYAN);
+            LedOff(GREEN);
+            LedOff(YELLOW);
+            LedOff(ORANGE);
+            LedOff(RED);
+            LedOn(WHITE);
         }
     }
     
 } /* end UserApp1SM_RadioOpening() */
 
+static void UserApp1SM_Finish(void)
+{
+    
+}
 static void UserApp1SM_WaitChannelOpen(void)
 {
     if( AntRadioStatusChannel(ANT_CHANNEL0_USERAPP) == ANT_OPEN ) 
