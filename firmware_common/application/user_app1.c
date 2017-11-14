@@ -290,7 +290,7 @@ static void UserApp1SM_ChoiceWaiting(void)
     {   
         ButtonAcknowledge(BUTTON0);
         UserApp1_StateMachine = UserApp1SM_CountBackwards;
-        LCDMessage(LINE2_START_ADDR, "                    ");
+        LCDMessage(LINE2_START_ADDR, "                      ");
     }
     
 }/* end UserApp1SM_ChoiceWaiting() */
@@ -356,10 +356,14 @@ static void UserApp1SM_RadioOpening(void)
     s8 as8dBmLevels[] = {DBM_LEVEL1, DBM_LEVEL2, DBM_LEVEL3, DBM_LEVEL4, 
                        DBM_LEVEL5, DBM_LEVEL6, DBM_LEVEL7, DBM_LEVEL8};
     static s8 s8StrongestRssi = -99;
-
+    
+    
+    
     /*Master*/
     if( AntRadioStatusChannel(ANT_CHANNEL0_USERAPP) == ANT_OPEN ) 
     {
+        
+        
         if( AntReadAppMessageBuffer() )
         {
             if(G_eAntApiCurrentMessageClass == ANT_DATA)
@@ -370,6 +374,7 @@ static void UserApp1SM_RadioOpening(void)
             else if(G_eAntApiCurrentMessageClass == ANT_TICK)
             {
                 AntQueueBroadcastMessage(ANT_CHANNEL_0,&UserApp1_au8MasterName[0]);
+                LCDMessage(LINE2_START_ADDR, "PRESS B0 TO RETRY");
             }
             
             LCDMessage(LINE2_START_ADDR, au8LCD_Line_2);
@@ -417,8 +422,10 @@ static void UserApp1SM_RadioOpening(void)
         if(s8StrongestRssi > DBM_MAX_LEVEL)
         {
             UserApp1_StateMachine = UserApp1SM_Finish;
-            LCDClearChars(LINE2_START_ADDR, 8);
-            LCDMessage(LINE2_START_ADDR, "Find you");
+            LCDClearChars(LINE2_START_ADDR, 19);
+            LCDClearChars(LINE1_START_ADDR, 19);
+            LCDMessage(LINE1_START_ADDR, "Find you");
+            LCDMessage(LINE2_START_ADDR, "PRESS BO TO RETRY");
             LedOff(WHITE);
             LedOff(PURPLE);
             LedOff(BLUE);
@@ -431,11 +438,39 @@ static void UserApp1SM_RadioOpening(void)
         }
     }
     
+    
+    if(WasButtonPressed(BUTTON0))
+    {   
+        ButtonAcknowledge(BUTTON0);
+        LedOff(WHITE);
+        AntCloseChannelNumber(ANT_CHANNEL1_USERAPP);
+        AntCloseChannelNumber(ANT_CHANNEL0_USERAPP);
+        UserApp1_StateMachine = UserApp1SM_WaitChannelClose;
+    }
 } /* end UserApp1SM_RadioOpening() */
 
 static void UserApp1SM_Finish(void)
 {
-    
+    if(WasButtonPressed(BUTTON0))
+    {   
+        ButtonAcknowledge(BUTTON0);
+        LedOff(WHITE);
+        AntCloseChannelNumber(ANT_CHANNEL1_USERAPP);
+        AntCloseChannelNumber(ANT_CHANNEL0_USERAPP);
+        UserApp1_StateMachine = UserApp1SM_WaitChannelClose;
+    }
+}
+
+static void UserApp1SM_WaitChannelClose(void)
+{
+    if( (AntRadioStatusChannel(ANT_CHANNEL0_USERAPP)|AntRadioStatusChannel(ANT_CHANNEL0_USERAPP)) != ANT_OPEN ) 
+    {
+        UserApp1_StateMachine = UserApp1SM_Idle;
+        LCDClearChars(LINE2_START_ADDR, 19);
+        LCDClearChars(LINE1_START_ADDR, 19);
+        LCDMessage(LINE1_START_ADDR, "PRESS B0 TO BE M");
+        LCDMessage(LINE2_START_ADDR, "PRESS B1 TO BE S");
+    }
 }
 static void UserApp1SM_WaitChannelOpen(void)
 {
@@ -448,19 +483,7 @@ static void UserApp1SM_WaitChannelOpen(void)
     {
         UserApp1_StateMachine = UserApp1SM_RadioOpening;
         
-    }
-    /* Check for timeout */
-    if( IsTimeUp(&UserApp1_u32Timeout, 5000) )
-    {
-        AntCloseChannelNumber(ANT_CHANNEL0_USERAPP);
-        AntCloseChannelNumber(ANT_CHANNEL1_USERAPP);
-        LedOn(RED);
-        LedOff(GREEN);
-        LCDMessage(LINE1_START_ADDR, "OPEN CHANNEL ERROR");
-        LCDMessage(LINE2_START_ADDR, "PRESS B0 TO RETRY");
-        UserApp1_StateMachine = UserApp1SM_Error;
-    }
-    
+    } 
 } /* end UserApp1SM_WaitChannelOpen() */
 
 static void UserApp1SM_WaitMasterAssign(void)

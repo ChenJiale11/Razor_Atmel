@@ -71,7 +71,7 @@
         <expressions>
           
           
-        <item>G_u32SystemTime1ms</item><item>au8LCD_Line_2</item><item></item></expressions>
+        <item>G_u32SystemTime1ms</item><item>au8LCD_Line_2</item><item>AntRadioStatusChannel(ANT_CHANNEL0_USERAPP)</item><item></item></expressions>
         <col-names>
           
           
@@ -183,14 +183,14 @@
         <vars>1</vars>
         <offset>0</offset>
       <PreferedWindows><Position>2</Position><ScreenPosX>0</ScreenPosX><ScreenPosY>0</ScreenPosY><Windows><Window><Factory>Register</Factory></Window><Window><Factory>WATCH_1</Factory></Window><Window><Factory>WATCH_2</Factory></Window><Window><Factory>CallStack</Factory></Window></Windows></PreferedWindows></STACK_1>
-    <Find-All-Declarations><ColumnWidth0>215</ColumnWidth0><ColumnWidth1>30</ColumnWidth1><ColumnWidth2>370</ColumnWidth2><PreferedWindows><Position>3</Position><ScreenPosX>0</ScreenPosX><ScreenPosY>0</ScreenPosY><Windows><Window><Factory>Debug-Log</Factory></Window><Window><Factory>Build</Factory></Window><Window><Factory>Breakpoints</Factory></Window><Window><Factory>Find-in-Files</Factory></Window></Windows></PreferedWindows></Find-All-Declarations><Find-in-Files><ColumnWidth0>185</ColumnWidth0><ColumnWidth1>30</ColumnWidth1><ColumnWidth2>277</ColumnWidth2><ColumnWidth3>123</ColumnWidth3><PreferedWindows><Position>3</Position><ScreenPosX>0</ScreenPosX><ScreenPosY>0</ScreenPosY><Windows><Window><Factory>Debug-Log</Factory></Window><Window><Factory>Build</Factory></Window><Window><Factory>Breakpoints</Factory></Window><Window><Factory>Find-All-Declarations</Factory></Window></Windows></PreferedWindows></Find-in-Files></Static>
+    <Find-All-Declarations><ColumnWidth0>215</ColumnWidth0><ColumnWidth1>30</ColumnWidth1><ColumnWidth2>370</ColumnWidth2><PreferedWindows><Position>3</Position><ScreenPosX>0</ScreenPosX><ScreenPosY>0</ScreenPosY><Windows><Window><Factory>Debug-Log</Factory></Window><Window><Factory>Build</Factory></Window><Window><Factory>Breakpoints</Factory></Window><Window><Factory>Find-in-Files</Factory></Window></Windows></PreferedWindows></Find-All-Declarations><Find-in-Files><PreferedWindows><Position>3</Position><ScreenPosX>0</ScreenPosX><ScreenPosY>0</ScreenPosY><Windows><Window><Factory>Debug-Log</Factory></Window><Window><Factory>Build</Factory></Window><Window><Factory>Breakpoints</Factory></Window><Window><Factory>Find-All-Declarations</Factory></Window></Windows></PreferedWindows><ColumnWidth0>185</ColumnWidth0><ColumnWidth1>30</ColumnWidth1><ColumnWidth2>277</ColumnWidth2><ColumnWidth3>123</ColumnWidth3></Find-in-Files></Static>
     <Windows>
       
       
       
       
       
-    <Wnd5>
+    <Wnd2>
         <Tabs>
           <Tab>
             <Identity>TabID-24281-12506</Identity>
@@ -202,7 +202,7 @@
           </Tab>
         </Tabs>
         
-      <SelectedTab>0</SelectedTab></Wnd5></Windows>
+      <SelectedTab>0</SelectedTab></Wnd2><Wnd3><Tabs><Tab><Identity>TabID-288-14362</Identity><TabName>Debug Log</TabName><Factory>Debug-Log</Factory><Session/></Tab><Tab><Identity>TabID-10996-20916</Identity><TabName>Find in Files</TabName><Factory>Find-in-Files</Factory><Session/></Tab></Tabs><SelectedTab>0</SelectedTab></Wnd3></Windows>
     <Editor>
       
       
@@ -216,7 +216,7 @@
       
       
       
-    <Top><Row0><Sizes><Toolbar-053CE9A8><key>iaridepm.enu1</key></Toolbar-053CE9A8><Toolbar-15CB92E0><key>debuggergui.enu1</key></Toolbar-15CB92E0></Sizes></Row0><Row1><Sizes><Toolbar-15CB99E8><key>armjlink.enu1</key></Toolbar-15CB99E8></Sizes></Row1></Top><Left><Row0><Sizes><Wnd5><Rect><Top>-2</Top><Left>-2</Left><Bottom>608</Bottom><Right>126</Right><x>-2</x><y>-2</y><xscreen>133</xscreen><yscreen>134</yscreen><sizeHorzCX>103906</sizeHorzCX><sizeHorzCY>197932</sizeHorzCY><sizeVertCX>100000</sizeVertCX><sizeVertCY>901034</sizeVertCY></Rect></Wnd5></Sizes></Row0></Left><Right><Row0><Sizes/></Row0></Right><Bottom><Row0><Sizes/></Row0></Bottom><Float><Sizes/></Float></Positions>
+    <Top><Row0><Sizes><Toolbar-052D8450><key>iaridepm.enu1</key></Toolbar-052D8450><Toolbar-18FCAC58><key>debuggergui.enu1</key></Toolbar-18FCAC58></Sizes></Row0><Row1><Sizes><Toolbar-18FCAAC8><key>armjlink.enu1</key></Toolbar-18FCAAC8></Sizes></Row1></Top><Left><Row0><Sizes><Wnd2><Rect><Top>-2</Top><Left>-2</Left><Bottom>410</Bottom><Right>126</Right><x>-2</x><y>-2</y><xscreen>133</xscreen><yscreen>134</yscreen><sizeHorzCX>103906</sizeHorzCX><sizeHorzCY>197932</sizeHorzCY><sizeVertCX>100000</sizeVertCX><sizeVertCY>608567</sizeVertCY></Rect></Wnd2></Sizes></Row0></Left><Right><Row0><Sizes/></Row0></Right><Bottom><Row0><Sizes><Wnd3><Rect><Top>-2</Top><Left>-2</Left><Bottom>198</Bottom><Right>1282</Right><x>-2</x><y>-2</y><xscreen>1284</xscreen><yscreen>200</yscreen><sizeHorzCX>1003125</sizeHorzCX><sizeHorzCY>295421</sizeHorzCY><sizeVertCX>156250</sizeVertCX><sizeVertCY>295421</sizeVertCY></Rect></Wnd3></Sizes></Row0></Bottom><Float><Sizes/></Float></Positions>
   </Desktop>
 </Project>
 
