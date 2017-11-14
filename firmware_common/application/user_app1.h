@@ -85,9 +85,7 @@ static void UserApp1SM_WaitSlaveAssign(void);
 static void UserApp1SM_WaitMasterAssign(void);
 static void UserApp1SM_WaitChannelOpen(void);
 static void UserApp1SM_RadioOpening(void);
-static void UserApp1SM_Wait(void);
-static void UserApp1SM_WaitChannelClose(void);
-
+static void UserApp1SM_Finish(void);
 #endif /* __USER_APP1_H */
 
 

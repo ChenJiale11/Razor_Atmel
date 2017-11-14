@@ -416,14 +416,9 @@ static void UserApp1SM_RadioOpening(void)
         }
         if(s8StrongestRssi > DBM_MAX_LEVEL)
         {
-   
-            LCDClearChars(LINE2_START_ADDR, 19);
-            LCDClearChars(LINE1_START_ADDR, 19);
-            LCDMessage(LINE1_START_ADDR, "FIND YOU");
-            LCDMessage(LINE2_START_ADDR, "PRESS B0 TO RETRY");
-            AntCloseChannelNumber(ANT_CHANNEL_1);
-            UserApp1_StateMachine = UserApp1SM_Wait;
-            UserApp1_u32Timeout = G_u32SystemTime1ms;
+            UserApp1_StateMachine = UserApp1SM_Finish;
+            LCDClearChars(LINE2_START_ADDR, 8);
+            LCDMessage(LINE2_START_ADDR, "Find you");
             LedOff(WHITE);
             LedOff(PURPLE);
             LedOff(BLUE);
@@ -437,29 +432,10 @@ static void UserApp1SM_RadioOpening(void)
     }
     
 } /* end UserApp1SM_RadioOpening() */
-static void UserApp1SM_Wait(void)
-{
-    if(WasButtonPressed(BUTTON0))
-    {   
-        ButtonAcknowledge(BUTTON0);
-        LedOff(WHITE);
-        UserApp1_StateMachine = UserApp1SM_WaitChannelClose;
-    }
-}
 
-
-static void UserApp1SM_WaitChannelClose(void)
+static void UserApp1SM_Finish(void)
 {
     
-    if( AntRadioStatusChannel(ANT_CHANNEL0_USERAPP) != ANT_OPEN ) 
-    {
-        UserApp1_StateMachine = UserApp1SM_Idle;
-        LCDClearChars(LINE2_START_ADDR, 19);
-        LCDClearChars(LINE1_START_ADDR, 19);
-        LCDMessage(LINE1_START_ADDR, "PRESS B0 TO BE M");
-        LCDMessage(LINE2_START_ADDR, "PRESS B1 TO BE S");
-    }
-  
 }
 static void UserApp1SM_WaitChannelOpen(void)
 {
