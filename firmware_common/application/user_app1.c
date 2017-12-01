@@ -61,7 +61,7 @@ Global variable definitions with scope limited to this local application.
 Variable names shall start with "UserApp1_" and be declared as static.
 ***********************************************************************************************************************/
 static fnCode_type UserApp1_StateMachine;            /* The state machine function pointer */
-//static u32 UserApp1_u32Timeout;                      /* Timeout counter used across states */
+static u32 UserApp_u32Timeout;                      /* Timeout counter used across states */
 
 
 /**********************************************************************************************************************
@@ -117,11 +117,15 @@ void UserApp1Initialize(void)
   sAntSetupData.AntTxPower          = ANT_TX_POWER_USERAPP;
 
   sAntSetupData.AntNetwork = ANT_NETWORK_DEFAULT;
-  for(u8 i = 0; i < ANT_NETWORK_NUMBER_BYTES; i++)
-  {
-    sAntSetupData.AntNetworkKey[i] = ANT_DEFAULT_NETWORK_KEY;
-  }
-    
+  /*0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45*/
+  sAntSetupData.AntNetworkKey[0] = 0xB9;
+  sAntSetupData.AntNetworkKey[1] = 0xA5;
+  sAntSetupData.AntNetworkKey[2] = 0x21;
+  sAntSetupData.AntNetworkKey[3] = 0xFB;
+  sAntSetupData.AntNetworkKey[4] = 0xBD;
+  sAntSetupData.AntNetworkKey[5] = 0x72;
+  sAntSetupData.AntNetworkKey[6] = 0xC3;
+  sAntSetupData.AntNetworkKey[7] = 0x45;
   /* If good initialization, set state to Idle */
   if( AntAssignChannel(&sAntSetupData) )
   {
@@ -131,7 +135,10 @@ void UserApp1Initialize(void)
 
 void UserApp1SM_WaitChannelAssign(void)  
 {
-    
+    if(AntRadioStatusChannel(ANT_CHANNEL_USERAPP) == ANT_CONFIGURED)
+    {
+        UserApp1_StateMachine = UserApp1SM_Idle;
+    }
 }
 /*----------------------------------------------------------------------------------------------------------------------
 Function UserApp1RunActiveState()
@@ -167,10 +174,65 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-
+    u8 au8WelcomeMessage[] = "Heartbeat Scan";
+    u8 au8Instructions[] = "Press B0 to Start";
+  
+    if(WasButtonPressed(BUTTON0))
+    {
+        ButtonAcknowledge(BUTTON0);
+        LCDCommand(LCD_CLEAR_CMD);
+        LCDMessage(LINE1_START_ADDR, au8WelcomeMessage); 
+        LCDMessage(LINE2_START_ADDR, au8Instructions);  
+        UserApp1_StateMachine = UserAppSM_WaitChannelOpen;
+        AntOpenChannelNumber(ANT_CHANNEL_USERAPP);
+        UserApp_u32Timeout = G_u32SystemTime1ms;
+        LedOn(LCD_BLUE);
+    }
 } /* end UserApp1SM_Idle() */
     
+static void UserAppSM_WaitChannelOpen(void)
+{
+    /* Monitor the channel status to check if channel is opened */
+    if(AntRadioStatusChannel(ANT_CHANNEL_USERAPP) == ANT_OPEN)
+    {
+        UserApp1_StateMachine = UserAppSM_ChannelOpen;
+    }
 
+    /* Check for timeout */
+    if( IsTimeUp(&UserApp_u32Timeout, TIMEOUT_VALUE) )
+    {
+        AntCloseChannelNumber(ANT_CHANNEL_USERAPP);
+        UserApp1_StateMachine = UserApp1SM_Idle;
+    }
+} /* end UserAppSM_WaitChannelOpen() */
+
+
+static void UserAppSM_ChannelOpen(void)
+{
+  static u8 u8PrensentBeatTimeLSB=0;
+  static u8 u8PrensentBeatTimeMSB=0;
+  static u8 u8PageNumber=0;
+    if( AntReadAppMessageBuffer() )
+    {
+        /* New data message: check what it is */
+        if(G_eAntApiCurrentMessageClass == ANT_DATA)
+        {
+            u8PageNumber=G_au8AntApiCurrentMessageBytes[0];
+            if(u8PageNumber == 4)
+            {
+                u8PrensentBeatTimeLSB = G_au8AntApiCurrentMessageBytes[4];
+                u8PrensentBeatTimeMSB = G_au8AntApiCurrentMessageBytes[5];
+            }
+            
+            LedOn(BLUE);
+        } /* end if(G_eAntApiCurrentMessageClass == ANT_DATA) */
+
+        else if(G_eAntApiCurrentMessageClass == ANT_TICK)
+        {
+            
+        } /* end else if(G_eAntApiCurrentMessageClass == ANT_TICK) */
+    } /* end AntReadAppMessageBuffer() */
+}
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Handle an error */
 static void UserApp1SM_Error(void)          
@@ -178,7 +240,21 @@ static void UserApp1SM_Error(void)
   
 } /* end UserApp1SM_Error() */
 
+static void UserAppSM_WaitChannelClose(void)
+{
+    /* Monitor the channel status to check if channel is closed */
+    if(AntRadioStatusChannel(ANT_CHANNEL_USERAPP) == ANT_CLOSED)
+    {
+        UserApp1_StateMachine = UserApp1SM_Idle;
+    }
 
+    /* Check for timeout */
+    if( IsTimeUp(&UserApp_u32Timeout, TIMEOUT_VALUE) )
+    {
+        UserApp1_StateMachine = UserApp1SM_Error;
+    }
+    
+} /* end UserAppSM_WaitChannelClose() */
 
 /*--------------------------------------------------------------------------------------------------------------------*/
 /* End of File                                                                                                        */

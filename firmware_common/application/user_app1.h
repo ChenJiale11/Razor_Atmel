@@ -32,13 +32,14 @@ Constants / Definitions
 #define ANT_CHANNEL_TYPE_USERAPP        CHANNEL_TYPE_SLAVE    
 #define ANT_DEVICEID_LO_USERAPP         (u8)0               
 #define ANT_DEVICEID_HI_USERAPP         (u8)0        
-#define ANT_DEVICE_TYPE_USERAPP         (u8)0        
+#define ANT_DEVICE_TYPE_USERAPP         (u8)120        
 #define ANT_TRANSMISSION_TYPE_USERAPP   (u8)0             
-#define ANT_CHANNEL_PERIOD_LO_USERAPP   (u8)0x00       
-#define ANT_CHANNEL_PERIOD_HI_USERAPP   (u8)0x20      
-#define ANT_FREQUENCY_USERAPP           (u8)50           
+#define ANT_CHANNEL_PERIOD_LO_USERAPP   (u8)0x86       
+#define ANT_CHANNEL_PERIOD_HI_USERAPP   (u8)0x1F      
+#define ANT_FREQUENCY_USERAPP           (u8)57           
 #define ANT_TX_POWER_USERAPP            RADIO_TX_POWER_4DBM 
 
+#define TIMEOUT_VALUE                   30000
 /**********************************************************************************************************************
 Function Declarations
 **********************************************************************************************************************/
@@ -54,7 +55,8 @@ Function Declarations
 void UserApp1Initialize(void);
 void UserApp1RunActiveState(void);
 void UserApp1SM_WaitChannelAssign(void);  
-
+void UserAppSM_ChannelOpen(void);
+void UserAppSM_WaitChannelOpen(void);
 /*--------------------------------------------------------------------------------------------------------------------*/
 /* Private functions                                                                                                  */
 /*--------------------------------------------------------------------------------------------------------------------*/
