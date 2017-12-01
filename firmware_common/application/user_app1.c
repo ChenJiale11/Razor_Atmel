@@ -52,7 +52,10 @@ extern volatile u32 G_u32ApplicationFlags;             /* From main.c */
 extern volatile u32 G_u32SystemTime1ms;                /* From board-specific source file */
 extern volatile u32 G_u32SystemTime1s;                 /* From board-specific source file */
 
-
+extern u32 G_u32AntApiCurrentDataTimeStamp;                       
+extern AntApplicationMessageType G_eAntApiCurrentMessageClass;   
+extern u8 G_au8AntApiCurrentMessageBytes[ANT_APPLICATION_MESSAGE_BYTES];
+extern AntExtendedDataType G_sAntApiCurrentMessageExtData;       
 /***********************************************************************************************************************
 Global variable definitions with scope limited to this local application.
 Variable names shall start with "UserApp1_" and be declared as static.
@@ -87,21 +90,49 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
- 
-  /* If good initialization, set state to Idle */
-  if( 1 )
-  {
-    UserApp1_StateMachine = UserApp1SM_Idle;
-  }
-  else
-  {
-    /* The task isn't properly initialized, so shut it down and don't run */
-    UserApp1_StateMachine = UserApp1SM_Error;
-  }
+  u8 au8WelcomeMessage[] = "Heartbeat Scan";
+  u8 au8Instructions[] = "Press B0 to Start";
 
-} /* end UserApp1Initialize() */
-
+  AntAssignChannelInfoType sAntSetupData;
   
+  /* Clear screen and place start messages */
+  LCDCommand(LCD_CLEAR_CMD);
+  LCDMessage(LINE1_START_ADDR, au8WelcomeMessage); 
+  LCDMessage(LINE2_START_ADDR, au8Instructions); 
+
+  /* Start with LED0 in RED state = channel is not configured */
+  LedOn(RED);
+  
+ /* Configure ANT for this application */
+  sAntSetupData.AntChannel          = ANT_CHANNEL_USERAPP;
+  sAntSetupData.AntChannelType      = ANT_CHANNEL_TYPE_USERAPP;
+  sAntSetupData.AntChannelPeriodLo  = ANT_CHANNEL_PERIOD_LO_USERAPP;
+  sAntSetupData.AntChannelPeriodHi  = ANT_CHANNEL_PERIOD_HI_USERAPP;
+  
+  sAntSetupData.AntDeviceIdLo       = ANT_DEVICEID_LO_USERAPP;
+  sAntSetupData.AntDeviceIdHi       = ANT_DEVICEID_HI_USERAPP;
+  sAntSetupData.AntDeviceType       = ANT_DEVICE_TYPE_USERAPP;
+  sAntSetupData.AntTransmissionType = ANT_TRANSMISSION_TYPE_USERAPP;
+  sAntSetupData.AntFrequency        = ANT_FREQUENCY_USERAPP;
+  sAntSetupData.AntTxPower          = ANT_TX_POWER_USERAPP;
+
+  sAntSetupData.AntNetwork = ANT_NETWORK_DEFAULT;
+  for(u8 i = 0; i < ANT_NETWORK_NUMBER_BYTES; i++)
+  {
+    sAntSetupData.AntNetworkKey[i] = ANT_DEFAULT_NETWORK_KEY;
+  }
+    
+  /* If good initialization, set state to Idle */
+  if( AntAssignChannel(&sAntSetupData) )
+  {
+    UserApp1_StateMachine = UserApp1SM_WaitChannelAssign;
+  }
+} /* end UserAppInitialize() */
+
+void UserApp1SM_WaitChannelAssign(void)  
+{
+    
+}
 /*----------------------------------------------------------------------------------------------------------------------
 Function UserApp1RunActiveState()
 
