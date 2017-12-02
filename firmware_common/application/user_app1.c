@@ -162,7 +162,6 @@ void UserApp1RunActiveState(void)
 /* Private functions                                                                                                  */
 /*--------------------------------------------------------------------------------------------------------------------*/
 
-
 /**********************************************************************************************************************
 State Machine Function Definitions
 **********************************************************************************************************************/
@@ -207,17 +206,17 @@ static void UserAppSM_WaitChannelOpen(void)
 
 static void UserAppSM_ChannelOpen(void)
 {
-    static u8 au8Memmory[100];
-    static u8 u8Count=0;
+    static u8 u8Now=0;
     if( AntReadAppMessageBuffer() )
     {
         /* New data message: check what it is */
         if(G_eAntApiCurrentMessageClass == ANT_DATA)
         {
-            au8Memmory[u8Count]=G_au8AntApiCurrentMessageBytes[7];
-            u8Count++;
             
-            LedOn(BLUE);
+            u8Now=G_au8AntApiCurrentMessageBytes[7];
+            LCDCommand(LCD_CLEAR_CMD);
+            LCDMessage(LINE1_START_ADDR,"Heartbeat Scan");
+            LCDMessage(LINE2_START_ADDR,&u8Now);
         } /* end if(G_eAntApiCurrentMessageClass == ANT_DATA) */
 
         else if(G_eAntApiCurrentMessageClass == ANT_TICK)
