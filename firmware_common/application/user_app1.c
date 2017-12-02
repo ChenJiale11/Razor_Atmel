@@ -161,7 +161,24 @@ void UserApp1RunActiveState(void)
 /*--------------------------------------------------------------------------------------------------------------------*/
 /* Private functions                                                                                                  */
 /*--------------------------------------------------------------------------------------------------------------------*/
+void AntGetdBmAscii(s8 s8RssiValue_, u8* pu8Result_)
+{
+  u8 u8AbsoluteValue;
 
+  u8AbsoluteValue = (u8)s8RssiValue_;
+
+  
+ 
+  /* Write the numeric value */
+  pu8Result_++;
+  *pu8Result_ = (u8AbsoluteValue / 100) + NUMBER_ASCII_TO_DEC;
+  pu8Result_++;
+  *pu8Result_ = ((u8AbsoluteValue % 100)/10) + NUMBER_ASCII_TO_DEC;
+  pu8Result_++;
+  *pu8Result_ = (u8AbsoluteValue % 10) + NUMBER_ASCII_TO_DEC;
+  
+  
+} /* end AntGetdBmAscii() */
 /**********************************************************************************************************************
 State Machine Function Definitions
 **********************************************************************************************************************/
@@ -206,17 +223,21 @@ static void UserAppSM_WaitChannelOpen(void)
 
 static void UserAppSM_ChannelOpen(void)
 {
-    static u8 u8Now=0;
+    static u8 au8Now[10];
     if( AntReadAppMessageBuffer() )
     {
         /* New data message: check what it is */
         if(G_eAntApiCurrentMessageClass == ANT_DATA)
         {
-            
-            u8Now=G_au8AntApiCurrentMessageBytes[7];
+            LedOn(BLUE);
+            AntGetdBmAscii(G_au8AntApiCurrentMessageBytes[7],&au8Now[0]);
+            au8Now[0]=au8Now[1];
+            au8Now[1]=au8Now[2];
+            au8Now[2]=au8Now[3];
+            au8Now[3]=au8Now[4];
             LCDCommand(LCD_CLEAR_CMD);
             LCDMessage(LINE1_START_ADDR,"Heartbeat Scan");
-            LCDMessage(LINE2_START_ADDR,&u8Now);
+            LCDMessage(LINE2_START_ADDR,au8Now);
         } /* end if(G_eAntApiCurrentMessageClass == ANT_DATA) */
 
         else if(G_eAntApiCurrentMessageClass == ANT_TICK)
