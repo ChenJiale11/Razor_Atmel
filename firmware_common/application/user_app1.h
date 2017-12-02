@@ -37,9 +37,11 @@ Constants / Definitions
 #define ANT_CHANNEL_PERIOD_LO_USERAPP   (u8)0x86       
 #define ANT_CHANNEL_PERIOD_HI_USERAPP   (u8)0x1F      
 #define ANT_FREQUENCY_USERAPP           (u8)57           
-#define ANT_TX_POWER_USERAPP            0 
+#define ANT_TX_POWER_USERAPP            (u8)RADIO_TX_POWER_4DBM 
 
 #define TIMEOUT_VALUE                   30000
+
+#define ARRAY_LENGTH                    20
 /**********************************************************************************************************************
 Function Declarations
 **********************************************************************************************************************/
@@ -61,6 +63,7 @@ void UserAppSM_WaitChannelOpen(void);
 /* Private functions                                                                                                  */
 /*--------------------------------------------------------------------------------------------------------------------*/
 void AntGetdBmAscii(s8 s8RssiValue_, u8* pu8Result_);
+void CombineArray( u8 au8Array1[ARRAY_LENGTH],u8 au8Array2[ARRAY_LENGTH] , u8 au8Array3[ARRAY_LENGTH] );
 /***********************************************************************************************************************
 State Machine Declarations
 ***********************************************************************************************************************/

@@ -95,6 +95,9 @@ void UserApp1Initialize(void)
 
   AntAssignChannelInfoType sAntSetupData;
   
+  LedOff(LCD_RED);
+  LedOff(LCD_BLUE);
+  LedOff(LCD_GREEN);
   /* Clear screen and place start messages */
   LCDCommand(LCD_CLEAR_CMD);
   LCDMessage(LINE1_START_ADDR, au8WelcomeMessage); 
@@ -163,22 +166,24 @@ void UserApp1RunActiveState(void)
 /*--------------------------------------------------------------------------------------------------------------------*/
 void AntGetdBmAscii(s8 s8RssiValue_, u8* pu8Result_)
 {
-  u8 u8AbsoluteValue;
+    u8 u8AbsoluteValue;
 
-  u8AbsoluteValue = (u8)s8RssiValue_;
-
+    u8AbsoluteValue = (u8)s8RssiValue_;
+    /* Write the numeric value */
+    *pu8Result_ = (u8AbsoluteValue / 100) + NUMBER_ASCII_TO_DEC;
+    pu8Result_++;
+    *pu8Result_ = ((u8AbsoluteValue % 100)/10) + NUMBER_ASCII_TO_DEC;
+    pu8Result_++;
+    *pu8Result_ = (u8AbsoluteValue % 10) + NUMBER_ASCII_TO_DEC;
   
- 
-  /* Write the numeric value */
-  pu8Result_++;
-  *pu8Result_ = (u8AbsoluteValue / 100) + NUMBER_ASCII_TO_DEC;
-  pu8Result_++;
-  *pu8Result_ = ((u8AbsoluteValue % 100)/10) + NUMBER_ASCII_TO_DEC;
-  pu8Result_++;
-  *pu8Result_ = (u8AbsoluteValue % 10) + NUMBER_ASCII_TO_DEC;
-  
-  
+    if(*(pu8Result_-2)=='0')
+    {
+        *(pu8Result_-2)=*(pu8Result_-1);
+        *(pu8Result_-1)=*(pu8Result_);
+        *pu8Result_='\0';
+    }
 } /* end AntGetdBmAscii() */
+
 /**********************************************************************************************************************
 State Machine Function Definitions
 **********************************************************************************************************************/
@@ -193,14 +198,12 @@ static void UserApp1SM_Idle(void)
     if(WasButtonPressed(BUTTON0))
     {
         ButtonAcknowledge(BUTTON0);
-        LedOn(LCD_BLUE);
         LCDCommand(LCD_CLEAR_CMD);
         LCDMessage(LINE1_START_ADDR, au8WelcomeMessage); 
         LCDMessage(LINE2_START_ADDR, au8Instructions);  
         UserApp1_StateMachine = UserAppSM_WaitChannelOpen;
         AntOpenChannelNumber(ANT_CHANNEL_USERAPP);
         UserApp_u32Timeout = G_u32SystemTime1ms;
-        LedOn(LCD_BLUE);
     }
 } /* end UserApp1SM_Idle() */
     
@@ -223,21 +226,72 @@ static void UserAppSM_WaitChannelOpen(void)
 
 static void UserAppSM_ChannelOpen(void)
 {
-    static u8 au8Now[10];
+    static u8 au8NowASCII[10];
+    static u8 au8List[100][3];
+    static u8 u8Display=0;
+    static u8 au8Display[20]="PresentHeartbeat:";
+    static u8 au8Line1Num[3];
+    u8 i=0,j=0;
+    static bool bNewMessage=FALSE;
+    if(WasButtonPressed(BUTTON0))
+    {
+        ButtonAcknowledge(BUTTON0);
+        u8Display++;
+    }
+    
+    if(WasButtonPressed(BUTTON1))
+    {
+        ButtonAcknowledge(BUTTON1);
+        u8Display--;
+    }
+    
     if( AntReadAppMessageBuffer() )
     {
         /* New data message: check what it is */
         if(G_eAntApiCurrentMessageClass == ANT_DATA)
         {
-            LedOn(BLUE);
-            AntGetdBmAscii(G_au8AntApiCurrentMessageBytes[7],&au8Now[0]);
-            au8Now[0]=au8Now[1];
-            au8Now[1]=au8Now[2];
-            au8Now[2]=au8Now[3];
-            au8Now[3]=au8Now[4];
+            LedOn(LCD_BLUE);
+            AntGetdBmAscii(G_au8AntApiCurrentMessageBytes[7],&au8NowASCII[0]);
+            for(i=0;i<3;i++)
+            {
+                if(au8List[0][i]!=au8NowASCII[i])
+                {
+                    bNewMessage=TRUE;
+                    u8Display++;
+                    break;
+                }
+            }
+            if(bNewMessage)
+            {
+                for(j=99 ; j>0 ; j--)
+                {
+                    for(i=0;i<3;i++)
+                    {
+                        au8List[j][i]=0;
+                        au8List[j][i]=au8List[j-1][i];
+                    }
+                }
+                
+                for(i=0;i<3;i++)
+                {
+                    au8List[0][i]=au8NowASCII[i];
+                }
+                
+                bNewMessage=FALSE;
+            }
+            
+            for(i=0;i<3;i++)
+            {
+                au8List[0][i]=au8NowASCII[i];
+            }
+            
+
+            
             LCDCommand(LCD_CLEAR_CMD);
-            LCDMessage(LINE1_START_ADDR,"Heartbeat Scan");
-            LCDMessage(LINE2_START_ADDR,au8Now);
+            LCDMessage(LINE1_START_ADDR,"History:");
+            LCDMessage(LINE1_START_ADDR+8,au8List[u8Display]);
+            LCDMessage(LINE2_START_ADDR,au8Display);
+            LCDMessage(LINE2_START_ADDR+17,au8NowASCII);
         } /* end if(G_eAntApiCurrentMessageClass == ANT_DATA) */
 
         else if(G_eAntApiCurrentMessageClass == ANT_TICK)
