@@ -100,9 +100,6 @@ void UserApp1Initialize(void)
   LCDMessage(LINE1_START_ADDR, au8WelcomeMessage); 
   LCDMessage(LINE2_START_ADDR, au8Instructions); 
 
-  /* Start with LED0 in RED state = channel is not configured */
-  LedOn(RED);
-  
  /* Configure ANT for this application */
   sAntSetupData.AntChannel          = ANT_CHANNEL_USERAPP;
   sAntSetupData.AntChannelType      = ANT_CHANNEL_TYPE_USERAPP;
@@ -175,11 +172,12 @@ State Machine Function Definitions
 static void UserApp1SM_Idle(void)
 {
     u8 au8WelcomeMessage[] = "Heartbeat Scan";
-    u8 au8Instructions[] = "Press B0 to Start";
+    u8 au8Instructions[] = "                     ";
   
     if(WasButtonPressed(BUTTON0))
     {
         ButtonAcknowledge(BUTTON0);
+        LedOn(LCD_BLUE);
         LCDCommand(LCD_CLEAR_CMD);
         LCDMessage(LINE1_START_ADDR, au8WelcomeMessage); 
         LCDMessage(LINE2_START_ADDR, au8Instructions);  
@@ -209,20 +207,15 @@ static void UserAppSM_WaitChannelOpen(void)
 
 static void UserAppSM_ChannelOpen(void)
 {
-  static u8 u8PrensentBeatTimeLSB=0;
-  static u8 u8PrensentBeatTimeMSB=0;
-  static u8 u8PageNumber=0;
+    static u8 au8Memmory[100];
+    static u8 u8Count=0;
     if( AntReadAppMessageBuffer() )
     {
         /* New data message: check what it is */
         if(G_eAntApiCurrentMessageClass == ANT_DATA)
         {
-            u8PageNumber=G_au8AntApiCurrentMessageBytes[0];
-            if(u8PageNumber == 4)
-            {
-                u8PrensentBeatTimeLSB = G_au8AntApiCurrentMessageBytes[4];
-                u8PrensentBeatTimeMSB = G_au8AntApiCurrentMessageBytes[5];
-            }
+            au8Memmory[u8Count]=G_au8AntApiCurrentMessageBytes[7];
+            u8Count++;
             
             LedOn(BLUE);
         } /* end if(G_eAntApiCurrentMessageClass == ANT_DATA) */
