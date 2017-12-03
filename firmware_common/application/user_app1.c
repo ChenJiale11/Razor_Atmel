@@ -95,6 +95,8 @@ void UserApp1Initialize(void)
 
   AntAssignChannelInfoType sAntSetupData;
   
+  PWMAudioSetFrequency(BUZZER1, BUZZER1_FREQUENCE);
+  
   LedOff(LCD_RED);
   LedOff(LCD_BLUE);
   LedOff(LCD_GREEN);
@@ -184,6 +186,10 @@ void AntGetdBmAscii(s8 s8RssiValue_, u8* pu8Result_)
     }
 } /* end AntGetdBmAscii() */
 
+void ASCIIHEX(u8 u8Num ,u8* pu8Result_)
+{   
+    
+}
 /**********************************************************************************************************************
 State Machine Function Definitions
 **********************************************************************************************************************/
@@ -194,7 +200,7 @@ static void UserApp1SM_Idle(void)
 {
     u8 au8WelcomeMessage[] = "Heartbeat Scan";
     u8 au8Instructions[] = "                     ";
-  
+    
     if(WasButtonPressed(BUTTON0))
     {
         ButtonAcknowledge(BUTTON0);
@@ -231,18 +237,49 @@ static void UserAppSM_ChannelOpen(void)
     static u8 u8Display=0;
     static u8 au8Display[20]="PresentHeartbeat:";
     static u8 au8Line1Num[3];
+    static u8 u8NowHeartBeat=0;
+    static bool bBuzzer=TRUE;
     u8 i=0,j=0;
     static bool bNewMessage=FALSE;
+    static bool bWatchHistory=FALSE;
+    
     if(WasButtonPressed(BUTTON0))
     {
         ButtonAcknowledge(BUTTON0);
+        bWatchHistory=TRUE;
         u8Display++;
+        
     }
-    
+
     if(WasButtonPressed(BUTTON1))
     {
         ButtonAcknowledge(BUTTON1);
-        u8Display--;
+        bWatchHistory=TRUE;
+        if(u8Display!=0)
+        {
+          u8Display--;
+        }
+    }
+    
+    if(WasButtonPressed(BUTTON2))
+    {
+        ButtonAcknowledge(BUTTON2);
+        if(bBuzzer)
+        {
+            bBuzzer=FALSE;
+            PWMAudioOff(BUZZER1);
+        }
+        else
+        {
+            bBuzzer=TRUE;
+        }
+        
+    }
+    if(WasButtonPressed(BUTTON3))
+    {
+        ButtonAcknowledge(BUTTON3);
+        bWatchHistory=FALSE;
+        u8Display=0;
     }
     
     if( AntReadAppMessageBuffer() )
@@ -257,12 +294,12 @@ static void UserAppSM_ChannelOpen(void)
                 if(au8List[0][i]!=au8NowASCII[i])
                 {
                     bNewMessage=TRUE;
-                    u8Display++;
                     break;
                 }
             }
             if(bNewMessage)
             {
+                
                 for(j=99 ; j>0 ; j--)
                 {
                     for(i=0;i<3;i++)
@@ -278,20 +315,80 @@ static void UserAppSM_ChannelOpen(void)
                 }
                 
                 bNewMessage=FALSE;
+                if(bWatchHistory)
+                {
+                    u8Display++;
+                    if(u8Display==99)
+                    {
+                        u8Display=99;
+                    }
+                    for(i=0;i<3;i++)
+                    {
+                        au8Line1Num[i]=au8List[u8Display][i];
+                    }
+                    
+                    if(au8Line1Num[0]=='\0')
+                    {
+                        au8Line1Num[0]='T';
+                        au8Line1Num[1]='O';
+                        au8Line1Num[2]='P';
+                    }
+                }
+                
+                LCDCommand(LCD_CLEAR_CMD);
+                LCDMessage(LINE2_START_ADDR,"History:");
+                LCDMessage(LINE1_START_ADDR,au8Display);
+                LCDMessage(LINE1_START_ADDR+17,au8NowASCII);
             }
             
-            for(i=0;i<3;i++)
+            
+            if(!bWatchHistory)
             {
-                au8List[0][i]=au8NowASCII[i];
+                for(i=0;i<3;i++)
+                {
+                    au8Line1Num[i]=au8NowASCII[i];
+                }
             }
             
-
+            if(au8List[0][2]=='\0')
+            {
+                u8NowHeartBeat=(au8List[0][0]-NUMBER_ASCII_TO_DEC)*10+au8List[0][1]-NUMBER_ASCII_TO_DEC;
+            }
+            else  
+            {
+                u8NowHeartBeat=(au8List[0][0]-NUMBER_ASCII_TO_DEC)*100+(au8List[0][1]-NUMBER_ASCII_TO_DEC)*10+(au8List[0][2]-NUMBER_ASCII_TO_DEC);
+            }
             
-            LCDCommand(LCD_CLEAR_CMD);
-            LCDMessage(LINE1_START_ADDR,"History:");
-            LCDMessage(LINE1_START_ADDR+8,au8List[u8Display]);
-            LCDMessage(LINE2_START_ADDR,au8Display);
-            LCDMessage(LINE2_START_ADDR+17,au8NowASCII);
+            if(u8NowHeartBeat>120)
+            {
+                LedOff(LCD_GREEN);
+                LedOff(LCD_BLUE);
+                LedOn(LCD_RED);
+                if(bBuzzer==TRUE)
+                {
+                    PWMAudioOn(BUZZER1);
+                }
+            }
+            else if(u8NowHeartBeat<=120&&u8NowHeartBeat>=85)
+            {
+                LedOn(LCD_RED);
+                LedOff(LCD_GREEN);
+                LedOn(LCD_BLUE);
+                bBuzzer=TRUE;
+            }
+            else if(u8NowHeartBeat<85&&u8NowHeartBeat>=60)
+            {
+                LedOn(LCD_GREEN);
+                LedOff(LCD_RED);
+                LedOff(LCD_BLUE);
+            }
+            else if(u8NowHeartBeat<60)
+            {
+                LedOff(LCD_RED);
+                LedOn(LCD_BLUE);
+                LedOff(LCD_GREEN);
+            }
+            LCDMessage(LINE2_START_ADDR+17,au8Line1Num);
         } /* end if(G_eAntApiCurrentMessageClass == ANT_DATA) */
 
         else if(G_eAntApiCurrentMessageClass == ANT_TICK)

@@ -9,7 +9,7 @@ TriggerName=main
 LimitSize=0
 ByteLimit=50
 [DebugChecksum]
-Checksum=-1857481390
+Checksum=-876005658
 [Exceptions]
 StopOnUncaught=_ 0
 StopOnThrow=_ 0
@@ -24,9 +24,19 @@ CStepIntDis=_ 0
 TraceBufferSize=0x00010000
 TraceStallIfFIFOFull=0x00000000
 TracePortSize=0x00000000
+[array_types]
+Fmt0=u8[3]	5	0
 [watch_formats]
 Fmt0={W}3:u8Display	3	0
 Fmt1={W}3:u8Now	4	1
+Fmt2={W}3:u8NowHeartBeat	3	0
+[Trace1]
+Enabled=0
+ShowSource=1
+[Disassemble mode]
+mode=0
+[Breakpoints2]
+Count=0
 [Log file]
 LoggingEnabled=_ 0
 LogFile=_ ""
@@ -34,6 +44,9 @@ Category=_ 0
 [TermIOLog]
 LoggingEnabled=_ 0
 LogFile=_ ""
+[Aliases]
+Count=0
+SuppressDialog=0
 [CallStackLog]
 Enabled=0
 [DriverProfiling]
@@ -42,10 +55,3 @@ Mode=1
 Graph=0
 Symbiont=0
 Exclusions=
-[Disassemble mode]
-mode=0
-[Breakpoints2]
-Count=0
-[Aliases]
-Count=0
-SuppressDialog=0
